@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibe UI Design Guide</title>
+<style>
+  /* 系统字体回退栈：保证不引用任何外部字体资源 */
+  /* 在 macOS/iOS 上 -apple-system 渲染为 SF Pro，视觉接近 Inter */
+  /* 在 Windows 上 fallback 至 Segoe UI，在 Linux/Android 上 fallback 至 Roboto/Noto Sans */
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #000; --card: #111; --border: rgba(255,255,255,0.08);
+    --text: #f5f5f7; --text2: #86868b; --accent: #2997ff;
+    --radius: 16px;
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    background: rgba(255,255,255,0.06); padding: 2px 6px;
+    border-radius: 4px; font-size: 13px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Roboto Mono", monospace;
+  }
+  strong { color: var(--text); font-weight: 600; }
+
+  /* NAV */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 14px 24px; display: flex; align-items: center; justify-content: space-between;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav .left { flex-shrink: 0; }
+  .nav .left a {
+    color: var(--text); font-size: 14px; font-weight: 700; text-decoration: none;
+    border-bottom: 1px solid var(--accent); padding-bottom: 1px;
+  }
+  .nav .left a:hover { border-bottom-color: var(--text); text-decoration: none; }
+  .nav .right { display: flex; align-items: center; gap: 24px; }
+  .nav .right a {
+    color: var(--accent); font-size: 13px; font-weight: 500; text-decoration: none;
+  }
+  .nav .right a:hover { text-decoration: underline; }
+  .nav .center { display: flex; gap: 24px; }
+  .nav .center a {
+    color: var(--text2); font-size: 13px; font-weight: 500; transition: color 0.2s; text-decoration: none;
+  }
+  .nav .center a:hover { color: var(--text); text-decoration: none; }
+
+  /* SECTIONS */
+  section {
+    max-width: 960px; margin: 0 auto; padding: 100px 24px;
+  }
+  .label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.14em; color: var(--accent); margin-bottom: 14px;
+  }
+  h1 { font-size: clamp(36px, 6.5vw, 64px); font-weight: 700; letter-spacing: -0.04em; line-height: 1.05; }
+  h2 { font-size: clamp(24px, 3.5vw, 40px); font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 12px; }
+  h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+  .desc { font-size: clamp(14px, 1.8vw, 18px); color: var(--text2); max-width: 600px; line-height: 1.6; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center; padding: 40px 24px;
+  }
+  .hero .sub {
+    font-size: clamp(14px, 1.8vw, 18px); color: var(--text2);
+    max-width: 480px; margin-bottom: 40px; font-weight: 400;
+  }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .btn {
+    padding: 11px 26px; border-radius: 980px; font-size: 14px; font-weight: 600;
+    transition: all 0.3s; display: inline-block; cursor: pointer;
+  }
+  .btn:hover { transform: scale(1.04); text-decoration: none; }
+  .btn-a { background: var(--accent); color: #fff; }
+  .btn-a:hover { background: #0077ed; }
+  .btn-o { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  .btn-o:hover { background: rgba(41,151,255,0.08); }
+  .arrow { margin-top: 60px; color: var(--text2); font-size: 20px; animation: f 3s ease-in-out infinite; }
+  @keyframes f { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
+
+  /* CARDS */
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 40px; }
+  @media(max-width:768px){ .g2{grid-template-columns:1fr} }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px; transition: border-color 0.3s;
+  }
+  .card:hover { border-color: rgba(255,255,255,0.15); }
+  .card p { color: var(--text2); font-size: 13px; line-height: 1.7; }
+
+  /* PATH */
+  .path { margin-top: 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media(max-width:768px){ .path{grid-template-columns:1fr} }
+  .path-item {
+    display: flex; gap: 18px; align-items: flex-start;
+    padding: 24px; background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); transition: border-color 0.3s;
+  }
+  .path-item:hover { border-color: rgba(255,255,255,0.15); }
+  .num {
+    flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
+    background: var(--accent); color: #fff; display: flex;
+    align-items: center; justify-content: center; font-size: 14px; font-weight: 700;
+  }
+  .path-item p { color: var(--text2); font-size: 13px; line-height: 1.7; }
+  .path-item ul { list-style: none; margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+  .path-item ul li { color: var(--text2); font-size: 12px; padding-left: 16px; position: relative; }
+  .path-item ul li::before {
+    content: ''; position: absolute; left: 0; top: 8px;
+    width: 5px; height: 5px; border-radius: 50%; background: var(--accent);
+  }
+
+  /* FLOW */
+  .flow { display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .flow-step {
+    padding: 8px 14px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; font-size: 12px; font-weight: 500;
+  }
+  .flow-arrow { color: var(--text2); font-size: 14px; }
+
+  /* TECH */
+  .stack { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-top: 40px; }
+  @media(max-width:768px){ .stack{grid-template-columns:1fr 1fr} }
+  .s-card { text-align:center; padding:24px 16px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); transition:border-color 0.3s; }
+  .s-card:hover { border-color: rgba(255,255,255,0.15); }
+  .s-card .ico { font-size: 24px; margin-bottom: 10px; }
+  .s-card h4 { font-size: 15px; font-weight: 600; margin-bottom: 5px; }
+  .s-card p { color: var(--text2); font-size: 12px; }
+  .s-card .pick { margin-top: 8px; font-size: 10px; font-weight: 600; color: var(--accent); }
+
+  /* RESOURCE */
+  .rlist { margin-top: 36px; display: flex; flex-direction: column; gap: 10px; }
+  .ritem {
+    display: flex; gap: 14px; align-items: center;
+    padding: 18px 22px; background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; transition: border-color 0.3s;
+  }
+  .ritem:hover { border-color: rgba(255,255,255,0.15); }
+  .ri-icon {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: rgba(255,255,255,0.06); display: flex;
+    align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;
+  }
+  .ri-text h4 { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .ri-text p { color: var(--text2); font-size: 12px; }
+
+  /* CAT LIST */
+  .cat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-top: 36px; }
+  @media(max-width:768px){ .cat-grid{grid-template-columns:1fr} }
+  .cat-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 24px; transition: border-color 0.3s;
+  }
+  .cat-card:hover { border-color: rgba(255,255,255,0.15); }
+  .cat-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .cat-card .cat-desc { color: var(--text2); font-size: 12px; margin-bottom: 12px; }
+  .cat-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .cat-list li {
+    font-size: 12px; padding-left: 14px; position: relative; padding-top: 1px;
+  }
+  .cat-list li a {
+    color: var(--accent); font-weight: 500; text-decoration: none;
+    border-bottom: 1px solid transparent; transition: border-color 0.2s;
+  }
+  .cat-list li a:hover { border-bottom-color: var(--accent); text-decoration: none; }
+  .cat-list li::before {
+    content: ''; position: absolute; left: 0; top: 9px;
+    width: 4px; height: 4px; border-radius: 50%; background: var(--text2);
+  }
+
+  /* CODE */
+  .code {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 20px; margin-top: 12px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Roboto Mono", monospace; font-size: 12px; color: var(--text2);
+    line-height: 1.7; overflow-x: auto; position: relative; white-space: pre-wrap;
+    word-break: break-word; padding-right: 70px;
+  }
+  .copy-btn {
+    position: absolute; top: 8px; right: 8px; padding: 4px 10px;
+    border-radius: 6px; border: 1px solid var(--border);
+    background: rgba(255,255,255,0.04); color: var(--text2);
+    font-size: 10px; font-weight: 600; cursor: pointer;
+    transition: all 0.25s; font-family: inherit;
+  }
+  .copy-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+  .copy-btn.y { background: rgba(255,255,255,0.1); color: var(--text); }
+
+  /* TIP */
+  .tip {
+    margin-top: 28px; padding: 20px 24px; background: var(--card);
+    border: 1px solid var(--border); border-radius: 14px;
+  }
+  .tip p { font-size: 13px; color: var(--text2); }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px; margin: 0 auto;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    max-width: 960px;
+  }
+
+  /* CTA BOTTOM */
+  .cta-bottom { text-align: center; padding: 60px 24px 100px; }
+  .cta-bottom p { color: var(--text2); font-size: 15px; margin-bottom: 28px; }
+
+  /* DESIGN MD STRUCTURE */
+  .md-struct {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Roboto Mono", monospace; font-size: 12px; color: var(--text2);
+    background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 18px; margin-top: 12px; line-height: 1.8;
+    white-space: pre-wrap;
+  }
+
+  /* SUB HEADING */
+  .sub-h {
+    font-size: 14px; font-weight: 600; color: var(--text2);
+    margin-top: 40px; margin-bottom: 14px; padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .sub-h:first-of-type { margin-top: 36px; padding-top: 0; border-top: none; }
+
+  /* PROMPT GRID */
+  .prompt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+  @media(max-width:768px){ .prompt-grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="left">
+    <a href="#" target="_blank">助力技术成长</a>
+  </div>
+  <div class="center">
+    <a href="#paths">路径</a>
+    <a href="#design">设计</a>
+    <a href="#dev">开发</a>
+    <a href="#resources">资源</a>
+  </div>
+  <div class="right">
+    <a href="#" target="_blank">交流社区</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <h1>Vibe UI<br>Design Guide</h1>
+  <p class="sub">AI 做的 UI 太丑、风格不稳定？<br>这是完整的设计到开发路径。</p>
+  <div class="row">
+    <a href="#paths" class="btn btn-a">查看路径</a>
+    <a href="#resources" class="btn btn-o">浏览资源</a>
+  </div>
+  <div class="arrow">↓</div>
+</section>
+
+<!-- PATHS -->
+<section id="paths">
+  <div class="label">01 · 路径</div>
+  <h2>两条路径</h2>
+  <p class="desc">从 UI Kit + MCP 快速生成，到 design.md 建立长期设计规范。</p>
+
+  <div class="path">
+    <div class="path-item">
+      <div class="num">1</div>
+      <div>
+        <h3>UI Kit + MCP</h3>
+        <p>使用支持 MCP 的 UI Kit，拷贝提示词后直接给 AI 编程工具即可生成。
+        <ul>
+          <li><a href="https://ui.shadcn.com" target="_blank">Shadcn UI</a> / <a href="https://heroui.com" target="_blank">HeroUI</a> 等自带 MCP Server</li>
+          <li>一键拷贝提示词（含安装 + Tailwind 规范）</li>
+          <li>丢给 <a href="https://github.com/openai/codex" target="_blank">Codex</a> 或 <a href="https://github.com/opencode-ai/opencode" target="_blank">OpenCode</a> 即可出效果</li>
+        </ul>
+        <div class="code">仅使用 shadcn/ui 组件。
+安装 shadcn MCP。
+除非必要，不要创建自定义组件。
+优先使用已有的 shadcn 代码块。
+使用 Tailwind CSS。
+保持间距一致，使用 8px 间距系统。
+不要使用随机颜色。
+除非明确要求，不要使用渐变。
+始终优先使用已有组件。
+          <button class="copy-btn" onclick="copyBtn(this)">复制提示词</button>
+        </div>
+      </div>
+    </div>
+    <div class="path-item">
+      <div class="num">2</div>
+      <div>
+        <h3>design.md</h3>
+        <p>在大型项目中保持风格一致性。将参考图或设计系统网址发给 AI，自动生成设计规范文件，未来可迭代更新。
+        <ul>
+          <li>大型项目保持风格一致</li>
+          <li>发送参考图 / 网址给 AI，自动生成 design.md</li>
+          <li>设计规范可随项目迭代</li>
+        </ul>
+        <div class="md-struct">Design.md
+├── Color
+├── Typography
+├── Radius
+├── Layout
+├── Components
+├── Animation
+└── Do Not</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 推荐 UI Kit (moved from Resources) -->
+  <div class="sub-h">推荐 UI Kit</div>
+  <div class="cat-grid">
+    <div class="cat-card">
+      <h3>SaaS</h3>
+      <p class="cat-desc">适合产品后台、B2B 管理界面</p>
+      <ul class="cat-list">
+        <li><a href="https://ui.shadcn.com" target="_blank">Shadcn UI</a> — 源码式组件，MCP 友好</li>
+        <li><a href="https://heroui.com" target="_blank">HeroUI</a> — 默认好看，SaaS 首选</li>
+        <li><a href="https://mantine.dev" target="_blank">Mantine</a> — 完整组件和 hooks</li>
+      </ul>
+    </div>
+    <div class="cat-card">
+      <h3>Landing Page</h3>
+      <p class="cat-desc">适合官网、发布页、活动页</p>
+      <ul class="cat-list">
+        <li><a href="https://magicui.design" target="_blank">Magic UI</a> — 动效组件和官网模块</li>
+        <li><a href="https://aceternity.com" target="_blank">Aceternity UI</a> — 营销页和视觉组件</li>
+        <li><a href="https://originui.com" target="_blank">Origin UI</a> — 可复制组件块</li>
+      </ul>
+    </div>
+    <div class="cat-card">
+      <h3>Dashboard</h3>
+      <p class="cat-desc">适合数据密集、图表、报表</p>
+      <ul class="cat-list">
+        <li><a href="https://tremor.design" target="_blank">Tremor</a> — 数据产品组件和图表</li>
+        <li><a href="https://refine.dev" target="_blank">Refine</a> — 管理系统框架</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Design.md 模板 (moved from Resources) -->
+  <div class="sub-h">Design.md 模板</div>
+  <div class="desc" style="margin-bottom:20px;">精选 15 个设计系统模板，点击卡片跳转到 GitHub 仓库浏览。</div>
+  <div class="cat-grid" style="grid-template-columns: repeat(5,1fr);">
+    <a class="cat-card" style="text-align:center; text-decoration:none;" href="https://github.com/bergside/awesome-design-skills/tree/main/skills/clean" target="_blank">
+      <div style="font-size:24px; margin-bottom:8px;">✨</div>
+      <h3>干净设计</h3>
+      <p class="cat-desc">Clean — 简洁清爽</p>
+    </a>
+    <a class="cat-card" style="text-align:center; text-decoration:none;" href="https://github.com/bergside/awesome-design-skills/tree/main/skills/minimal" target="_blank">
+      <div style="font-size:24px; margin-bottom:8px;">◻️</div>
+      <h3>极简设计</h3>
+      <p class="cat-desc">Minimal — 少即是多</p>
+    </a>
+    <a class="cat-card" style="text-align:center; text-decoration:none;" href="https://github.com/bergside/awesome-design-skills/tree/main/skills/modern" target="_blank">
+      <div style="font-size:24px; margin-bottom:8px;">🚀</div>
+      <h3>现代设计</h3>
+      <p class="cat-desc">Modern — 层次与渐变</p>
+    </a>
+    <a class="cat-card" style="text-align:center; text-decoration:none;" href="https://github.com/bergside/awesome-design-skills/tree/main/skills/elegant" target="_blank">
+      <div style="font-size:24px; margin-bottom:8px;">💎</div>
+      <h3>优雅设计</h3>
+      <p class="cat-desc">Elegant — 精致细节</p>
+    </a>
+    <a class="cat-card" style="text-align:center; text-decoration:none;" href="https://github.com/bergside/awesome-design-skills/tree/main/skills/premium" target="_blank">
+      <div style="font-size:24px; margin-bottom:8px;">👑</div>
+      <h3>高级设计</h3>
+      <p class="cat-desc">Premium — 品质感</p>
+    </a>
+    <a class="cat-card" style="text-align:center; text-decoration:none;" href="https://github.com/bergside/awesome-design-skills/tree/main/skills/luxury" target="_blank">
+      <div style="font-size:24px; margin-bottom:8px;">🏛️</div>
+      <h3>奢华设计</h3>
+      <p class="cat-desc">Luxury — 高级氛围</p>
+    </a>
+    <a class="cat-card" style="text-align:center; text-decoration:none;" href="https://github.com/bergside/awesome-design-skills/tree/main/skills/professional" target="_blank">
+      <div style="font-size:24px; margin-bottom:8px;">💼</div>
+      <h3>专业设计</h3>
+      <p class="cat-desc">Professional — 商务级</p>
+    </a>
+    <a class="cat-card" style="text-align:center; text-decoration:none;" href="https://github.com/bergside/awesome-design-skills/tree/main/skills/dashboard" target="_blank">
+      <div style="font-size:24px; margin-bottom:8px;">📊</div>
+      <h3>仪表盘设计</h3>
+      <p class="cat-desc">Dashboard — 数据密度</p>
+    </a>
+    <a class="cat-card" style="text-align:center; text-decoration:none;" href="https://github.com/bergside/awesome-design-skills/tree/main/skills/bento" target="_blank">
+      <div style="font-size:24px; margin-bottom:8px;">📦</div>
+      <h3>Bento 设计</h3>
+      <p class="cat-desc">Bento — 模块化分块</p>
+    </a>
+    <a class="cat-card" style="text-align:center; text-decoration:none;" href="https://github.com/bergside/awesome-design-skills/tree/main/skills/corporate" target="_blank">
+      <div style="font-size:24px; margin-bottom:8px;">🏢</div>
+      <h3>企业设计</h3>
+      <p class="cat-desc">Corporate — 稳重统一</p>
+    </a>
+    <a class="cat-card" style="text-align:center; text-decoration:none;" href="https://github.com/bergside/awesome-design-skills/tree/main/skills/sleek" target="_blank">
+      <div style="font-size:24px; margin-bottom:8px;">💧</div>
+      <h3>流畅设计</h3>
+      <p class="cat-desc">Sleek — 动感过渡</p>
+    </a>
+    <a class="cat-card" style="text-align:center; text-decoration:none;" href="https://github.com/bergside/awesome-design-skills/tree/main/skills/refined" target="_blank">
+      <div style="font-size:24px; margin-bottom:8px;">🔮</div>
+      <h3>精致设计</h3>
+      <p class="cat-desc">Refined — 追求完美</p>
+    </a>
+    <a class="cat-card" style="text-align:center; text-decoration:none;" href="https://github.com/bergside/awesome-design-skills/tree/main/skills/spacious" target="_blank">
+      <div style="font-size:24px; margin-bottom:8px;">🌬️</div>
+      <h3>宽敞设计</h3>
+      <p class="cat-desc">Spacious — 呼吸感</p>
+    </a>
+    <a class="cat-card" style="text-align:center; text-decoration:none;" href="https://github.com/bergside/awesome-design-skills/tree/main/skills/contemporary" target="_blank">
+      <div style="font-size:24px; margin-bottom:8px;">🎭</div>
+      <h3>当代设计</h3>
+      <p class="cat-desc">Contemporary — 平衡美学</p>
+    </a>
+    <a class="cat-card" style="text-align:center; text-decoration:none;" href="https://github.com/bergside/awesome-design-skills/tree/main/skills/simple" target="_blank">
+      <div style="font-size:24px; margin-bottom:8px;">▪️</div>
+      <h3>简洁设计</h3>
+      <p class="cat-desc">Simple — 简单直接</p>
+    </a>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- DESIGN -->
+<section id="design">
+  <div class="label">02 · 设计</div>
+  <h2>制作你的专属风格</h2>
+  <p class="desc">两种路线，从 AI 生成到亲手设计。</p>
+
+  <div class="g2">
+    <div class="card">
+      <h3>路线 A：AI 生成</h3>
+      <p>让 AI 生成效果图 → AI 根据效果图开发 → 完成后整理为 design.md。</p>
+      <div class="flow">
+        <div class="flow-step">效果图</div><span class="flow-arrow">→</span>
+        <div class="flow-step">开发</div><span class="flow-arrow">→</span>
+        <div class="flow-step">design.md</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>路线 B：自己做设计</h3>
+      <p>通过 MCP 连接 AI，只设计首页首屏，其余页面让 AI 扩展写进 design.md。长图片分模块发布，每次完成后更新 design.md。</p>
+    </div>
+  </div>
+
+  <div class="tip">
+    <p>💡 <strong>小技巧：</strong>将设计好的图片发给 AI，让它自动提取设计 Token，输出为 design.md。下方 Prompt 可直接复制使用：</p>
+    <div class="code">你是一名资深 UI 设计师和 Design System 专家。请分析我提供的图片，提取所有设计 Token，并输出为一份完整的 design.md。
+
+提取以下信息：
+1. 色彩体系：主色、辅色、强调色，附带 HEX 值
+2. 字体系统：标题/正文字体族、字号、字重、行高
+3. 间距系统：基础间距单位、组件间距
+4. 圆角规范：按钮、卡片、输入框
+5. 阴影系统：各层级阴影参数
+6. 布局规范：栅格、最大宽度、断点
+7. 组件规范：按钮、输入框、卡片的状态
+输出 Markdown，按 Design Token → 组件规范 → 布局规范 组织。
+    <button class="copy-btn" onclick="copyBtn(this)">复制</button>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- DEV -->
+<section id="dev">
+  <div class="label">03 · 开发</div>
+  <h2>根据项目选型</h2>
+  <p class="desc">设计定稿后，选择合适的技术栈。</p>
+
+  <div class="stack">
+    <div class="s-card">
+      <div class="ico">📄</div><h4><a href="https://developer.mozilla.org/en-US/docs/Web/HTML" target="_blank">HTML</a></h4><p>小型展示项目</p>
+      <div class="pick">最简单</div>
+    </div>
+    <div class="s-card">
+      <div class="ico">⚛️</div><h4><a href="https://react.dev" target="_blank">React</a></h4><p>复杂项目首选</p>
+      <div class="pick">不熟选 React</div>
+    </div>
+    <div class="s-card">
+      <div class="ico">🎨</div><h4><a href="https://tailwindcss.com" target="_blank">Tailwind</a></h4><p>自建项目样式</p>
+      <div class="pick">推荐</div>
+    </div>
+    <div class="s-card">
+      <div class="ico">🔥</div><h4><a href="https://nextjs.org" target="_blank">Next.js</a></h4><p>前后端一体化</p>
+      <div class="pick">一体化最佳</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- RESOURCES -->
+<section id="resources">
+  <div class="label">04 · 资源</div>
+  <h2>设计要素，一站找齐</h2>
+  <p class="desc">字体、图标、UI Kit、模板、Prompt、Skill。</p>
+
+  <!-- 字体 -->
+  <div class="sub-h">字体</div>
+  <div class="g2">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h3>英文网站</h3>
+      <p style="margin-top:8px;">在 <a href="https://fonts.google.com" target="_blank">Google Fonts</a> 上找到想要的字体，让 AI 引用嵌入即可使用。</p>
+      <div class="code" style="margin-top:12px; padding-right:80px; font-size:11px;">@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+      <button class="copy-btn" onclick="copyBtn(this)">复制</button></div>
+    </div>
+    <div class="card" style="border-left: 3px solid #555;">
+      <h3>中文网站</h3>
+      <p style="margin-top:8px;">中文网页使用系统默认字体即可，无需额外嵌入。如需指定风格，可参考小米或苹果中国网站的字体搭配让 AI 提取。</p>
+      <div class="code" style="margin-top:12px; padding-right:80px; font-size:11px;">font-family: -apple-system, "PingFang SC",
+  "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      <button class="copy-btn" onclick="copyBtn(this)">复制</button></div>
+    </div>
+  </div>
+  <p style="font-size:12px; color:var(--text2); margin-top:14px; line-height:1.7;">
+    ⚠️ 英文字体体积小，可以直接嵌入引用。中文字体文件较大（通常 5MB+），一般使用系统自带字体或兼容回退字体，不需要也不推荐嵌入。
+  </p>
+
+  <!-- 图标 -->
+  <div class="sub-h">图标</div>
+  <div class="rlist">
+    <div class="ritem"><div class="ri-icon">✦</div>
+      <div class="ri-text"><h4><a href="https://lucide.dev" target="_blank">Lucide</a></h4><p>适合产品 UI 的线性图标。</p></div></div>
+    <div class="ritem"><div class="ri-icon">✦</div><div class="ri-text"><h4><a href="https://tabler.io/icons" target="_blank">Tabler Icons</a></h4><p>覆盖面广，风格稳定。</p></div></div>
+    <div class="ritem"><div class="ri-icon">✦</div><div class="ri-text"><h4><a href="https://phosphoricons.com" target="_blank">Phosphor Icons</a></h4><p>多种粗细和风格。</p></div></div>
+    <div class="ritem"><div class="ri-icon">✦</div><div class="ri-text"><h4><a href="https://heroicons.com" target="_blank">Heroicons</a></h4><p>适合 Tailwind / SaaS 产品。</p></div></div>
+  </div>
+
+  <!-- Prompt -->
+  <div class="sub-h">Prompt</div>
+  <div class="prompt-grid">
+    <div class="card">
+      <h3>网站 → Design.md</h3>
+      <div class="code">Analyze this website. Create a complete Design.md.
+Include: Typography, Spacing, Colors, Components, Interaction, Animation
+      <button class="copy-btn" onclick="copyBtn(this)">复制</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>截图 → Design.md</h3>
+      <div class="code">Analyze this UI. Generate Design.md. Extract:
+Color system, Typography, Layout, Component rules, Spacing rules, Interaction patterns
+      <button class="copy-btn" onclick="copyBtn(this)">复制</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 开发工具栈推荐 -->
+  <div class="sub-h">开发工具栈推荐</div>
+  <p class="desc" style="margin-bottom:20px;">推荐不同角色使用不同工具，选对路更快落地。</p>
+  <div class="g2">
+    <div class="card">
+      <h3><a href="https://www.opendesign.ai" target="_blank">OpenDesign</a></h3>
+      <p>开源设计工具，AI 驱动设计到代码的完整流程。</p>
+      <p style="margin-top:8px; font-size:12px; color:var(--accent);">适合：开源爱好者、想自托管设计工具的人</p>
+    </div>
+    <div class="card">
+      <h3><a href="https://github.com/openai/codex" target="_blank">Codex</a> + Product Designer 插件</h3>
+      <p>在聊天窗口输入 <code>@product design</code>，先做 UI 设计再开发。</p>
+      <p style="margin-top:8px; font-size:12px; color:var(--accent);">适合：使用 Codex 的开发者，想获得设计 + 开发一体化</p>
+    </div>
+  </div>
+  <div class="g2" style="margin-top:14px;">
+    <div class="card">
+      <h3><a href="https://claude.ai/design" target="_blank">Claude Design</a></h3>
+      <p>Anthropic 官方设计工具，Prompt 驱动 UI 生成与迭代。</p>
+      <p style="margin-top:8px; font-size:12px; color:var(--accent);">适合：Claude 用户、偏好 Prompt 工作流的人</p>
+    </div>
+    <div class="card">
+      <h3><a href="https://www.figma.com/make" target="_blank">Figma Make</a></h3>
+      <p>Figma 自动化设计工具，从设计稿到交互一键生成。</p>
+      <p style="margin-top:8px; font-size:12px; color:var(--accent);">适合：已有 Figma 习惯的设计师 / 前端</p>
+    </div>
+  </div>
+  <div style="margin-top:14px;">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h3><a href="https://aistudio.google.com" target="_blank">Google AI Studio</a></h3>
+      <p>多模型对比 + 自定义 Prompt 模板，实验不同的 AI 生成方案。</p>
+      <p style="margin-top:8px; font-size:12px; color:var(--accent);">适合：AI 实验爱好者、想对比不同模型效果的人</p>
+    </div>
+  </div>
+
+  <!-- AI 效果图 -->
+  <div class="sub-h">AI 效果图生成 & 设计工具</div>
+  <p class="desc" style="margin-bottom:20px;">根据身份选择合适工具。</p>
+  <div class="g2">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h3>👤 非设计师 / 新手 → <a href="https://www.loveart.pro" target="_blank">LoveArt</a></h3>
+      <p style="margin-top:8px;">Skill + MD 提示词 + 设计系统 + 多种模型一站式覆盖，开箱即用，不需要设计基础。</p>
+      <p style="margin-top:10px; font-size:12px; color:var(--accent);">💰 付费：按需订阅，入门套餐约 ¥30-99/月</p>
+    </div>
+    <div class="card" style="border-left: 3px solid #555;">
+      <h3>🎨 原本有设计经验 → <a href="https://figma.com" target="_blank">Figma</a>（付费版）</h3>
+      <p style="margin-top:8px;">多模型 + 图片生成 + 自定义设计系统 + 代码生成，完整专业工作流。</p>
+      <ul style="list-style:none; margin-top:10px; display:flex; flex-direction:column; gap:4px;">
+        <li style="color:var(--text2); font-size:12px; padding-left:14px; position:relative;">
+          <span style="position:absolute; left:0; top:6px; width:5px; height:5px; border-radius:50%; background:var(--accent);"></span>
+          Pro <strong style="color:#f5f5f7;">$12/月/人</strong> — 个人专业版
+        </li>
+        <li style="color:var(--text2); font-size:12px; padding-left:14px; position:relative;">
+          <span style="position:absolute; left:0; top:6px; width:5px; height:5px; border-radius:50%; background:var(--accent);"></span>
+          Org <strong style="color:#f5f5f7;">$25/月/人</strong> — 团队管理 + 版本历史 + 高级协作
+        </li>
+        <li style="color:var(--text2); font-size:12px; padding-left:14px; position:relative;">
+          <span style="position:absolute; left:0; top:6px; width:5px; height:5px; border-radius:50%; background:var(--accent);"></span>
+          Enterprise <strong style="color:#f5f5f7;">价格面议</strong> — 无限画布 + SSO + 合规
+        </li>
+        <li style="color:var(--text2); font-size:12px; padding-left:14px; position:relative;">
+          <span style="position:absolute; left:0; top:6px; width:5px; height:5px; border-radius:50%; background:var(--text2);"></span>
+          Free 免费版 — 基础功能，限 3 文件
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="stack" style="grid-template-columns: repeat(3,1fr); margin-top: 14px;">
+    <div class="s-card"><div class="ico">🧵</div><h4><a href="https://stitch.google.com" target="_blank">Google Stitch</a></h4><p>快速绘制线框图和草图</p></div>
+    <div class="s-card"><div class="ico">💬</div><h4><a href="https://chat.openai.com" target="_blank">ChatGPT</a></h4><p>对话式图像生成，描述即出图</p></div>
+    <div class="s-card"><div class="ico">❤️</div><h4><a href="https://www.loveart.pro" target="_blank">LoveArt</a></h4><p>新手友好，Skill + MD 全套方案</p></div>
+  </div>
+</section>
+
+<!-- CTA BOTTOM -->
+<div class="cta-bottom">
+  <h2>开始 Vibe UI 之旅</h2>
+  <p>选择一条路径，用 AI 打造完美 UI。</p>
+  <div class="row">
+    <a href="#paths" class="btn btn-a">回顾路径</a>
+    <a href="#resources" class="btn btn-o">浏览资源</a>
+  </div>
+</div>
+
+<script>
+function copyBtn(btn) {
+  // 获取代码块，跳过按钮自身的文本
+  const el = btn.parentElement;
+  // 克隆节点以排除按钮文本
+  const clone = el.cloneNode(true);
+  const btnInClone = clone.querySelector('.copy-btn');
+  if (btnInClone) btnInClone.remove();
+  const text = clone.innerText.trim();
+
+  // 先用 execCommand 兼容所有协议（包括 file://），再用现代 Clipboard API
+  let copied = false;
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    ta.style.pointerEvents = 'none';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    copied = document.execCommand('copy');
+    document.body.removeChild(ta);
+  } catch (e) {
+    copied = false;
+  }
+
+  // 同时尝试现代 Clipboard API（更安全、剪贴板内容类型更准确）
+  if (!copied && navigator.clipboard && navigator.clipboard.writeText) {
+    try { navigator.clipboard.writeText(text); } catch (e) {}
+  }
+
+  // 立即给予视觉反馈（不依赖 Promise）
+  const original = btn.dataset.original || btn.textContent;
+  btn.dataset.original = original;
+  btn.textContent = '已复制';
+  btn.classList.add('y');
+  setTimeout(() => {
+    btn.textContent = original;
+    btn.classList.remove('y');
+  }, 2000);
+}
+
+// 平滑滚动增强（兼容所有现代浏览器）
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href');
+    if (id.length > 1) {
+      const target = document.querySelector(id);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  });
+});
+
+// 滚动进入视口时的渐入动画（IntersectionObserver）
+const fadeEls = document.querySelectorAll('section, .path-item, .cat-card, .s-card, .card, .ritem, .tip');
+fadeEls.forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(20px)';
+  el.style.transition = 'opacity 0.7s ease, transform 0.7s ease';
+});
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.opacity = '1';
+      entry.target.style.transform = 'translateY(0)';
+      io.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+fadeEls.forEach(el => io.observe(el));
+
+// 视口内已可见的 hero 元素立即显示
+window.addEventListener('load', () => {
+  document.querySelectorAll('.hero').forEach(el => {
+    el.style.opacity = '1';
+    el.style.transform = 'none';
+    io.unobserve(el);
+  });
+});
+</script>
+</body>
+</html>
